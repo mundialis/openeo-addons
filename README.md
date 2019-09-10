@@ -1,5 +1,5 @@
 # openeo-addons
-openEO related GRASS GIS addons
+openEO related GRASS GIS addons (see https://github.com/Open-EO/openeo-grassgis-driver)
 
 ## Installation
 ```
