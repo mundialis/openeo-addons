@@ -1,0 +1,30 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.rast.hants</em> uses <a href="r.hants.html">r.hants</a>
+to filter map values and fill gaps in a space time raster dataset (STRDS).
+<p>
+The user must provide an input and an output space time raster dataset 
+The resulting STRDS will have the same temporal resolution as the input 
+dataset. All maps will be processed using the current region settings.
+<p>
+The user can select a subset of the input space time raster dataset for
+processing using a SQL WHERE statement. The number of CPU's to be used
+for parallel processing can be specified with the <em>nprocs</em>
+option to speedup the computation on multi-core system.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="r.hants.html">r.hants</a>,
+<a href="t.info.html">t.info</a>,
+<a href="g.region.html">g.region</a>,
+<a href="r.mask.html">r.mask</a>
+</em>
+
+
+<h2>AUTHOR</h2>
+
+Markus Metz, mundialis
+
+<p><i>Last changed: $Date$</i>
