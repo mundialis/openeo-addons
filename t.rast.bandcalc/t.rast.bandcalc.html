@@ -1,0 +1,52 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.rast.bandcalc</em> performs a spatio-temporal
+<em>mapcalc</em> expression on maps of temporally sampled space time
+raster datasets (STRDS). It uses a single STRDS as input and calculates 
+a new STRDS according to <em>expression</em> from different bands 
+included in the input STRDS. This is useful to e.g. calculcate a 
+time-series of NDVI or EVI maps, or any other indices based on 
+several different input bands.
+
+<p>
+This module is a front-end for 
+<em><a href="t.rast.mapcalc.html">t.rast.mapcalc</a></em>.
+
+<p>
+Different bands must be referenced in the expression by 
+<em>data[index]</em> with index being a number starting with 0. For 
+example, with Sentinel-2, <em>data[3]</em> refers to the fourth 
+Sentinel-2 band &quot;S2_4 Visible (Red)&quot;. 
+<em>t.rast.bandcalc</em> replaces <em>data[index]</em> with the 
+according selections of the input STRDS.
+
+<p>
+This module expects several parameters. The resulting space time raster 
+dataset must be specified in the <b>output</b> option together with the 
+<b>basename</b> of generated raster maps that are registered in the 
+resulting STRDS. Empty maps resulting from map-calculation are not 
+registered by default. This behavior can be changed with the <b>-n</b> 
+flag. The flag <b>-s</b> can be used to assure that only spatially 
+related maps in the STRDS's are processed. Spatially related means that 
+temporaly related maps overlap in their spatial extent.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="t.rast.mapcalc.html">t.rast.mapcalc</a>,
+<a href="g.bands.html">g.bands</a>,
+<a href="i.bands.html">i.bands</a>
+</em>
+<p>
+<a href="http://grasswiki.osgeo.org/wiki/Temporal_data_processing">Temporal data processing Wiki</a>
+
+<h2>AUTHOR</h2>
+
+Markus Metz
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
+
