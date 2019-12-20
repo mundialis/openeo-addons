@@ -113,7 +113,7 @@ def main():
     bandrefs = []
     counter = 0
     for line in bandrefs_raw.splitlines():
-        bandrefs[counter] = line.split(' ')[0]
+        bandrefs.append(line.split(' ')[0])
         counter = counter + 1
     
     nbands = counter + 1
@@ -121,8 +121,8 @@ def main():
     # find needed bands in formula: if "data[0]" in formula:
     # go through the list of bands and replace (str.replace(old, new) in the formula e.g. data[0] with (input_strds + '.' + bandref[0])
     counter = 0
-    band_used = []
     new_inputs = []
+    band_used = [False for i in range(nbands)]
     while counter < nbands:
         fstr = "data[" + str(counter) + "]"
         if fstr in expression:
@@ -133,6 +133,7 @@ def main():
         else:
             band_used[counter] = False
         counter = counter + 1
+    #print (expression)
 
     grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression, 
                        method=method, output=output, basename=base, 
