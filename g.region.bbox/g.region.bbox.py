@@ -82,6 +82,14 @@
 #% description: CRS must be EPSG code or proj string
 #% guisection: Bounds
 #%end
+#%option G_OPT_R_INPUT
+#% key: raster
+#% required: no
+#%end
+#%option G_OPT_STRDS_INPUT
+#% key: strds
+#% required: no
+#%end
 
 import sys
 
@@ -93,6 +101,8 @@ def main():
     in_s = float(options['s'])
     in_w = float(options['w'])
     in_e = float(options['e'])
+    raster = options['raster']
+    strds = options['strds']
 
     inprojstring = bboxcrs
     if "EPSG" in bboxcrs:
@@ -180,7 +190,15 @@ def main():
     if flags['g']:
         outflags = 'g'
 
-    grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, flags=outflags)
+    if raster:
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, align=raster, flags=outflags)
+    elif strds:
+        strds_info = grass.parse_command('t.info', input=strds, flags='g', delimiter = '=')
+        res = (float(strds_info['nsres_min']) + float(strds_info['ewres_min'])) / 2.0
+        outflags = outflags + 'a'
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, res=res, flags=outflags)
+    else:
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, flags=outflags)
 
     return 0
 
