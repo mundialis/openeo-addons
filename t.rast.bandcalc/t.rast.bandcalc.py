@@ -102,10 +102,11 @@ def main():
 
     # get the sensor appreviation split by _
     sensor_abbr = None
+    input_bands = []
     for line in br_raw.splitlines():
         sensor_abbr = line.split('_')[0]
         # TODO: check if sensor abbreviation changes
-        break
+        input_bands.append(line.rstrip('\r\n'))
     
     # get the bands with g.bands pat=<sensor appreviation>
     bandrefs_raw = grass.read_command('g.bands', pattern=sensor_abbr)
@@ -113,10 +114,13 @@ def main():
     bandrefs = []
     counter = 0
     for line in bandrefs_raw.splitlines():
-        bandrefs.append(line.split(' ')[0])
-        counter = counter + 1
+        thisband = line.split(' ')[0]
+        # use only those bands present in the input strds 
+        if thisband in input_bands:
+            bandrefs.append(thisband)
+            counter = counter + 1
     
-    nbands = counter + 1
+    nbands = counter
 
     # find needed bands in formula: if "data[0]" in formula:
     # go through the list of bands and replace (str.replace(old, new) in the formula e.g. data[0] with (input_strds + '.' + bandref[0])
