@@ -43,7 +43,7 @@ def main():
     geojson = options['input']
     outvect = options['output']
 
-    tmpfile = grass.tempfile()
+    tmpfile = grass.tempfile() + ".geojson"
     fd = open(tmpfile, "w")
     fd.write("%s\n" % (geojson))
     fd.close()
