@@ -98,7 +98,7 @@ def main():
         # TODO: check if sensor abbreviation changes
         break
 
-    # hard-coded for now, as long as there are no STAC-like common names 
+    # hard-coded for now, as long as there are no STAC-like common names
     # in the output of g.bands
     
     red_band = None
@@ -125,7 +125,7 @@ def main():
         new_inputs.append("%s.%s@%s" % (strds, nir_band, mapset))
 
         expression=("float(%(instrds)s.%(nir)s@%(mapset)s - %(instrds)s.%(red)s@%(mapset)s) / "
-                    "(%(instrds)s.%(nir)s@%(mapset)s + %(instrds)s.%(red)s@%(mapset)s)" % \
+                    "(%(instrds)s.%(nir)s@%(mapset)s + %(instrds)s.%(red)s@%(mapset)s)" %
                       {"instrds": strds,
                        "nir": nir_band,
                        "red": red_band,
@@ -134,15 +134,15 @@ def main():
         new_inputs.append("%s.%s" % (_input, red_band))
         new_inputs.append("%s.%s" % (_input, nir_band))
         expression=("float(%(instrds)s.%(nir)s - %(instrds)s.%(red)s) / "
-                    "(%(instrds)s.%(nir)s + %(instrds)s.%(red)s)" % \
+                    "(%(instrds)s.%(nir)s + %(instrds)s.%(red)s)" %
                       {"instrds": _input,
                        "nir": nir_band,
                        "red": red_band})
 
     #print (expression)
 
-    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression, 
-                       method=method, output=output, basename=base, 
+    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression,
+                       method=method, output=output, basename=base,
                        nprocs=nprocs, flags=new_flags)
 
 ###############################################################################
