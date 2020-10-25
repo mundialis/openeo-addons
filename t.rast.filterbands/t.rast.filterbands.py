@@ -108,7 +108,7 @@ def main():
         common_names["swir16"] = "L5_5"
         common_names["swir22"] = "L5_7"
         common_names["lwir"] = "L5_6"
-    else if sensor_abbr == "L7":
+    elif sensor_abbr == "L7":
         common_names["blue"] = "L7_1"
         common_names["green"] = "L7_2"
         common_names["red"] = "L7_3"
@@ -117,7 +117,7 @@ def main():
         common_names["swir22"] = "L7_7"
         common_names["lwir"] = "L7_6"
         common_names["pan"] = "L7_8"
-    else if sensor_abbr == "L8":
+    elif sensor_abbr == "L8":
         common_names["coastal"] = "L8_1"
         common_names["blue"] = "L8_2"
         common_names["green"] = "L8_3"
@@ -129,7 +129,7 @@ def main():
         common_names["cirrus"] = "L8_9"
         common_names["lwir11"] = "L8_10"
         common_names["lwir12"] = "L8_11"
-    else if sensor_abbr == "S2":
+    elif sensor_abbr == "S2":
         common_names["coastal"] = "S2_1"
         common_names["blue"] = "S2_2"
         common_names["green"] = "S2_3"
@@ -150,7 +150,7 @@ def main():
         wavecenter["L5_5"] = 1.65
         wavecenter["L5_6"] = 11.45
         wavecenter["L5_7"] = 2.21
-    else if sensor_abbr == "L7":
+    elif sensor_abbr == "L7":
         wavecenter["L7_1"] = 0.48
         wavecenter["L7_2"] = 0.56
         wavecenter["L7_3"] = 0.66
@@ -159,7 +159,7 @@ def main():
         wavecenter["L7_6"] = 11.45
         wavecenter["L7_7"] = 2.22
         wavecenter["L7_8"] = 0.6
-    else if sensor_abbr == "L8":
+    elif sensor_abbr == "L8":
         wavecenter["L8_1"] = 0.44
         wavecenter["L8_2"] = 0.48
         wavecenter["L8_3"] = 0.56
@@ -171,7 +171,7 @@ def main():
         wavecenter["L8_9"] = 1.37
         wavecenter["L8_10"] = 10.9
         wavecenter["L8_11"] = 12
-    else if sensor_abbr == "S2":
+    elif sensor_abbr == "S2":
         wavecenter["S2_1"] = 0.44
         wavecenter["S2_2"] = 0.49
         wavecenter["S2_3"] = 0.56
