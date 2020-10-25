@@ -98,7 +98,7 @@ def main():
         # TODO: check if sensor abbreviation changes
         break
 
-    # hard-coded for now, as long as there are no STAC-like common names 
+    # hard-coded for now, as long as there are no STAC-like common names
     # in the output of g.bands
     
     red_band = None
@@ -141,8 +141,8 @@ def main():
 
     #print (expression)
 
-    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression, 
-                       method=method, output=output, basename=base, 
+    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression,
+                       method=method, output=output, basename=base,
                        nprocs=nprocs, flags=new_flags)
 
 ###############################################################################

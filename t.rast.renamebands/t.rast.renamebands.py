@@ -82,8 +82,8 @@ def main():
     fd = open(rlistfile, "w")
 
     if source:
-        source = source.split(',') 
-    target = target.split(',') 
+        source = source.split(',')
+    target = target.split(',')
 
     # modify band names
     for rmap in rlist.splitlines():

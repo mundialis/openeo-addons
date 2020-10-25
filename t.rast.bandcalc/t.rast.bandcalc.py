@@ -115,7 +115,7 @@ def main():
     counter = 0
     for line in bandrefs_raw.splitlines():
         thisband = line.split(' ')[0]
-        # use only those bands present in the input strds 
+        # use only those bands present in the input strds
         if thisband in input_bands:
             bandrefs.append(thisband)
             counter = counter + 1
@@ -139,8 +139,8 @@ def main():
         counter = counter + 1
     #print (expression)
 
-    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression, 
-                       method=method, output=output, basename=base, 
+    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression,
+                       method=method, output=output, basename=base,
                        nprocs=nprocs, flags=new_flags)
 
 ###############################################################################
