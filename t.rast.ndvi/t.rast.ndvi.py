@@ -125,7 +125,7 @@ def main():
         new_inputs.append("%s.%s@%s" % (strds, nir_band, mapset))
 
         expression=("float(%(instrds)s.%(nir)s@%(mapset)s - %(instrds)s.%(red)s@%(mapset)s) / "
-                    "(%(instrds)s.%(nir)s@%(mapset)s + %(instrds)s.%(red)s@%(mapset)s)" % \
+                    "(%(instrds)s.%(nir)s@%(mapset)s + %(instrds)s.%(red)s@%(mapset)s)" %
                       {"instrds": strds,
                        "nir": nir_band,
                        "red": red_band,
@@ -134,7 +134,7 @@ def main():
         new_inputs.append("%s.%s" % (_input, red_band))
         new_inputs.append("%s.%s" % (_input, nir_band))
         expression=("float(%(instrds)s.%(nir)s - %(instrds)s.%(red)s) / "
-                    "(%(instrds)s.%(nir)s + %(instrds)s.%(red)s)" % \
+                    "(%(instrds)s.%(nir)s + %(instrds)s.%(red)s)" %
                       {"instrds": _input,
                        "nir": nir_band,
                        "red": red_band})
