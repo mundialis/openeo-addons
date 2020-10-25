@@ -83,7 +83,7 @@ from grass.pygrass.raster.raster_type import TYPE as RTYPE
 class StrdsEntry:
 
     def __init__(self, dbif: SQLDatabaseInterfaceConnection, strds: SpaceTimeRasterDataset,
-                 map_list: List[RasterDataset], region:Region, open_input_maps: List[RasterRow]=[],
+                 map_list: List[RasterDataset], region:Region, open_input_maps: List[RasterRow] = [],
                  start_times=[], end_times=[], mtype=None):
 
         self.dbif = dbif
