@@ -134,6 +134,12 @@ def main():
             newstr = ("%s.%s") % (_input, bandrefs[counter])
             new_inputs.append(newstr)
             expression = expression.replace(fstr, newstr)
+        elif "data." in expression:
+            fstr = "data."
+            newstr = ("%s.") % (_input)
+            # get all occurences of "data.<band> and replace with <_input>.band"
+            #new_inputs.append(newstr)
+            expression = expression.replace(fstr, newstr)
         else:
             band_used[counter] = False
         counter = counter + 1
