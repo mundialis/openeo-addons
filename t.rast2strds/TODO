@@ -1,0 +1,9 @@
+
+lib/raster/raster_metadata.c
+Rast_legal_bandref()
+any name is legal because we must allow custom band names
+
+WARNING: Band reference must be in form <shortcut>_<bandname>
+
+  File "/home/metz/src/grass-master/dist.x86_64-pc-linux-gnu/etc/python/grass/temporal/c_libraries_interface.py", line 589, in _write_band_reference
+    raise ValueError(_("Invalid band reference"))

@@ -19,4 +19,5 @@ grass --tmp-location EPSG:4326 --exec g.extension url=/src/grass_plugins/openeo-
 - t.rast.renamebands: renames band names in a STRDS, creating a new STRDS
 - t.rast.resample: applies a resampling method to each map in a space time raster dataset
 - t.rast.udf: applies a user defined function (UDF) to aggregate a time series into a single output raster map
+- t.rast2strds: creates a new strds from an existing raster and an existing strds
 - v.in.geojson: imports a GeoJSON object
