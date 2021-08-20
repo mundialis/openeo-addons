@@ -20,58 +20,58 @@
 #
 #############################################################################
 
-#%module
-#% description: Performs spatio-temporal mapcalc expressions using different bands in a given STRDS.
-#% keyword: temporal
-#% keyword: algebra
-#% keyword: raster
-#% keyword: time
-#%end
+# %module
+# % description: Performs spatio-temporal mapcalc expressions using different bands in a given STRDS.
+# % keyword: temporal
+# % keyword: algebra
+# % keyword: raster
+# % keyword: time
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#%end
+# %option G_OPT_STRDS_INPUT
+# %end
 
-#%option
-#% key: expression
-#% type: string
-#% description: Spatio-temporal mapcalc expression
-#% required: yes
-#% multiple: no
-#%end
+# %option
+# % key: expression
+# % type: string
+# % description: Spatio-temporal mapcalc expression
+# % required: yes
+# % multiple: no
+# %end
 
-#%option G_OPT_T_SAMPLE
-#% key: method
-#% answer: equal
-#%end
+# %option G_OPT_T_SAMPLE
+# % key: method
+# % answer: equal
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# %end
 
-#%option G_OPT_R_BASENAME_OUTPUT
-#% key: basename
-#% label: Basename for output raster maps
-#% description: A numerical suffix separated by an underscore will be attached to create a unique identifier
-#% required: yes
-#%end
+# %option G_OPT_R_BASENAME_OUTPUT
+# % key: basename
+# % label: Basename for output raster maps
+# % description: A numerical suffix separated by an underscore will be attached to create a unique identifier
+# % required: yes
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.mapcalc processes to run in parallel
-#% required: no
-#% multiple: no
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel
+# % required: no
+# % multiple: no
+# % answer: 1
+# %end
 
-#%flag
-#% key: n
-#% description: Register Null maps
-#%end
+# %flag
+# % key: n
+# % description: Register Null maps
+# %end
 
-#%flag
-#% key: s
-#% description: Check the spatial topology of temporally related maps and process only spatially related maps
-#%end
+# %flag
+# % key: s
+# % description: Check the spatial topology of temporally related maps and process only spatially related maps
+# %end
 
 import grass.script as grass
 
@@ -96,50 +96,44 @@ def main():
         new_flags = "n"
     if spatial:
         new_flags = new_flags + "s"
-    
-    # get the first entry of the output of t.rast.list columns=band_reference
+
+    # get all band names with t.rast.list columns=band_reference
     br_raw = grass.read_command('t.rast.list', input=_input, columns="band_reference", flags='u')
 
-    # get the sensor appreviation split by _
-    sensor_abbr = None
+    # get list of band names without duplicates
     input_bands = []
-    for line in br_raw.splitlines():
-        sensor_abbr = line.split('_')[0]
-        # TODO: check if sensor abbreviation changes
-        input_bands.append(line.rstrip('\r\n'))
-    
-    # get the bands with g.bands pat=<sensor appreviation>
-    bandrefs_raw = grass.read_command('g.bands', pattern=sensor_abbr)
-    # remove description: split by whitespace
-    bandrefs = []
     counter = 0
-    for line in bandrefs_raw.splitlines():
-        thisband = line.split(' ')[0]
-        # use only those bands present in the input strds
-        if thisband in input_bands:
-            bandrefs.append(thisband)
+    for line in br_raw.splitlines():
+        # TODO: not very elegant
+        band = line.rstrip('\r\n')
+        if band not in input_bands:
+            input_bands.append(band)
             counter = counter + 1
-    
+
+    # TODO: order of band names ???
+
     nbands = counter
 
     # find needed bands in formula: if "data[0]" in formula:
-    # go through the list of bands and replace (str.replace(old, new) in the formula e.g. data[0] with (input_strds + '.' + bandref[0])
+    # go through the list of bands and replace (str.replace(old, new)
+    # in the formula e.g. data[0] with (input_strds + '.' + bandref[0])
     counter = 0
     new_inputs = []
     band_used = [False for i in range(nbands)]
     while counter < nbands:
         fstr = "data[" + str(counter) + "]"
+        bandname = input_bands[counter]
+        data_band = ("data.%s") % (band)
         if fstr in expression:
             band_used[counter] = True
-            newstr = ("%s.%s") % (_input, bandrefs[counter])
+            newstr = ("%s.%s") % (_input, bandname)
             new_inputs.append(newstr)
             expression = expression.replace(fstr, newstr)
-        elif "data." in expression:
-            fstr = "data."
-            newstr = ("%s.") % (_input)
-            # get all occurences of "data.<band> and replace with <_input>.band"
-            #new_inputs.append(newstr)
-            expression = expression.replace(fstr, newstr)
+        elif data_band in expression:
+            band_used[counter] = True
+            newstr = ("%s.%s") % (_input, bandname)
+            new_inputs.append(newstr)
+            expression = expression.replace(data_band, newstr)
         else:
             band_used[counter] = False
         counter = counter + 1
@@ -150,6 +144,7 @@ def main():
                        nprocs=nprocs, flags=new_flags)
 
 ###############################################################################
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

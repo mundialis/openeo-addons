@@ -87,36 +87,41 @@ def main():
         new_flags = "n"
     if spatial:
         new_flags = new_flags + "s"
-    
+
     # get the first entry of the output of t.rast.list columns=band_reference
     br_raw = grass.read_command('t.rast.list', input=_input, columns="band_reference", flags='u')
 
     # get the sensor appreviation split by _
     sensor_abbr = None
     for line in br_raw.splitlines():
-        sensor_abbr = line.split('_')[0]
-        # TODO: check if sensor abbreviation changes
-        break
+        if '_' in line:
+            sensor_abbr = line.split('_')[0]
+            # TODO: check if sensor abbreviation changes
+            break
 
     # hard-coded for now, as long as there are no STAC-like common names
     # in the output of g.bands
-    
+
     red_band = None
     nir_band = None
-    if sensor_abbr == "L5":
-        red_band = "L5_3"
-        nir_band = "L5_4"
-    elif sensor_abbr == "L7":
-        red_band = "L7_3"
-        nir_band = "L7_4"
-    elif sensor_abbr == "L8":
-        red_band = "L8_4"
-        nir_band = "L8_5"
-    elif sensor_abbr == "S2":
-        red_band = "S2_4"
-        nir_band = "S2_8"
-    else:
-        grass.fatal("Unknown sensor abbreviation <%s>" % sensor_abbr)
+    if sensor_abbr is not None:
+        if sensor_abbr == "L5":
+            red_band = "L5_3"
+            nir_band = "L5_4"
+        elif sensor_abbr == "L7":
+            red_band = "L7_3"
+            nir_band = "L7_4"
+        elif sensor_abbr == "L8":
+            red_band = "L8_4"
+            nir_band = "L8_5"
+        elif sensor_abbr == "S2":
+            red_band = "S2_4"
+            nir_band = "S2_8"
+
+    if red_band is None:
+        grass.warning("Assuming 'red' and 'nir as band names in %s" % _input)
+        red_band = "red"
+        nir_band = "nir"
 
     new_inputs = []
     if '@' in _input:
@@ -146,6 +151,7 @@ def main():
                        nprocs=nprocs, flags=new_flags)
 
 ###############################################################################
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
