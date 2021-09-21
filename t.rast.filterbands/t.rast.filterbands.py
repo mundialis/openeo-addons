@@ -20,52 +20,52 @@
 #
 #############################################################################
 
-#%module
-#% description: Extract selected bands from a given STRDS.
-#% keyword: temporal
-#% keyword: algebra
-#% keyword: raster
-#% keyword: time
-#%end
+# %module
+# % description: Extract selected bands from a given STRDS.
+# % keyword: temporal
+# % keyword: algebra
+# % keyword: raster
+# % keyword: time
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#%end
+# %option G_OPT_STRDS_INPUT
+# %end
 
-#%option G_OPT_T_SAMPLE
-#% key: method
-#% answer: equal
-#%end
+# %option G_OPT_T_SAMPLE
+# % key: method
+# % answer: equal
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# %end
 
-#%option
-#% key: bands
-#% type: string
-#% label: Bands to extract
-#% description: Bands can be real or common band names
-#% multiple: yes
-#% required: no
-#%end
+# %option
+# % key: bands
+# % type: string
+# % label: Bands to extract
+# % description: Bands can be real or common band names
+# % multiple: yes
+# % required: no
+# %end
 
-#%option
-#% key: wavelengths
-#% type: double
-#% label: Wavelengths to extract in micrometers
-#% description: Wavelengths are defined by min, max
-#% multiple: yes
-#% key_desc: min,max
-#% required: no
-#%end
+# %option
+# % key: wavelengths
+# % type: double
+# % label: Wavelengths to extract in micrometers
+# % description: Wavelengths are defined by min, max
+# % multiple: yes
+# % key_desc: min,max
+# % required: no
+# %end
 
-#%option
-#% key: nprocs
-#% type: integer
-#% description: Number of r.mapcalc processes to run in parallel
-#% required: no
-#% multiple: no
-#% answer: 1
-#%end
+# %option
+# % key: nprocs
+# % type: integer
+# % description: Number of r.mapcalc processes to run in parallel
+# % required: no
+# % multiple: no
+# % answer: 1
+# %end
 
 
 import grass.script as grass
@@ -80,27 +80,20 @@ def main():
     wavelengths = options["wavelengths"]
     nprocs = int(options["nprocs"])
 
-    bandssel = list()
-    if bandsin:
-        bandsin = bandsin.split(',')
-        for bandname in bandsin:
-            if bandname in common_names:
-                bandname = common_names[bandname]
-            bandssel.append("'" + bandname + "'")
+    # get list of bands available in the input strds
+    t_info = grass.parse_command('t.info', input=_input, flags='g')
+    bands_avlbl = t_info["band_names"].split(',')
 
-    if wavelengths:
-        # get the first entry of the output of t.rast.list columns=band_reference
-        br_raw = grass.read_command('t.rast.list', input=_input, columns="band_reference", flags='u')
-
-        # get the sensor appreviation split by _
-        sensor_abbr = None
-        for line in br_raw.splitlines():
-            sensor_abbr = line.split('_')[0]
+    # get the sensor appreviation split by _
+    sensor_abbr = None
+    for band in bands_avlbl:
+        if "_" in band:
+            sensor_abbr = band.split('_')[0]
             # TODO: check if sensor abbreviation changes
             break
 
-        if sensor_abbr is None:
-            grass.fatal("Sensor abbreviation is not available")
+    common_names = dict()
+    if sensor_abbr is not None:
         if sensor_abbr not in ("L5", "L7", "L8", "S2"):
             grass.fatal("Unknown sensor abbreviation <%s>" % sensor_abbr)
 
@@ -109,7 +102,6 @@ def main():
 
         # from https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#common-band-names
 
-        common_names = dict()
         if sensor_abbr == "L5":
             common_names["blue"] = "L5_1"
             common_names["green"] = "L5_2"
@@ -150,6 +142,28 @@ def main():
             common_names["cirrus"] = "S2_10"
             common_names["swir16"] = "S2_11"
             common_names["swir22"] = "S2_12"
+
+    bandssel = list()
+    if bandsin:
+        # check bands to select
+        bandsin = bandsin.split(',')
+        for bandname in bandsin:
+            if bandname in bands_avlbl:
+                bandssel.append("'" + bandname + "'")
+            else:
+                if bandname not in common_names:
+                    grass.fatal("Unknown band name <%s>" % bandname)
+                if common_names[bandname] not in bands_avlbl:
+                    grass.fatal("Band name <%s> is not available" % bandname)
+
+                bandssel.append("'" + common_names[bandname] + "'")
+
+    if wavelengths:
+        # this mechanism will not work if custom band names are used
+        if sensor_abbr is None:
+            grass.fatal("Sensor abbreviation is not available")
+        if sensor_abbr not in ("L5", "L7", "L8", "S2"):
+            grass.fatal("Unknown sensor abbreviation <%s>" % sensor_abbr)
 
         wavecenter = dict()
         if sensor_abbr == "L5":

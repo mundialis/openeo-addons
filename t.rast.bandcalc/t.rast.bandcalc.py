@@ -97,22 +97,11 @@ def main():
     if spatial:
         new_flags = new_flags + "s"
 
-    # get all band names with t.rast.list columns=band_reference
-    br_raw = grass.read_command('t.rast.list', input=_input, columns="band_reference", flags='u')
+    # get list of bands available in the input strds
+    t_info = grass.parse_command('t.info', input=_input, flags='g')
+    input_bands = t_info["band_names"].split(',')
 
-    # get list of band names without duplicates
-    input_bands = []
-    counter = 0
-    for line in br_raw.splitlines():
-        # TODO: not very elegant
-        band = line.rstrip('\r\n')
-        if band not in input_bands:
-            input_bands.append(band)
-            counter = counter + 1
-
-    # TODO: order of band names ???
-
-    nbands = counter
+    nbands = len(input_bands)
 
     # find needed bands in formula: if "data[0]" in formula:
     # go through the list of bands and replace (str.replace(old, new)
@@ -123,7 +112,7 @@ def main():
     while counter < nbands:
         fstr = "data[" + str(counter) + "]"
         bandname = input_bands[counter]
-        data_band = ("data.%s") % (band)
+        data_band = ("data.%s") % (bandname)
         if fstr in expression:
             band_used[counter] = True
             newstr = ("%s.%s") % (_input, bandname)
@@ -137,11 +126,12 @@ def main():
         else:
             band_used[counter] = False
         counter = counter + 1
-    #print (expression)
+    # print(expression)
 
-    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs), expression=expression,
-                       method=method, output=output, basename=base,
-                       nprocs=nprocs, flags=new_flags)
+    grass.run_command('t.rast.mapcalc', inputs=(',').join(new_inputs),
+                      expression=expression, method=method,
+                      output=output, basename=base,
+                      nprocs=nprocs, flags=new_flags)
 
 ###############################################################################
 
