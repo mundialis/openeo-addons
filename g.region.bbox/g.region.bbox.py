@@ -94,6 +94,8 @@
 import sys
 
 import grass.script as grass
+from osgeo import osr, ogr
+
 
 def main():
     bboxcrs = options['crs']
@@ -104,51 +106,56 @@ def main():
     raster = options['raster']
     strds = options['strds']
 
-    inprojstring = bboxcrs
+    source = osr.SpatialReference()
     if "EPSG" in bboxcrs:
         epsgcode = bboxcrs[5:len(bboxcrs)]
-        inprojstring = grass.read_command('g.proj', epsg=epsgcode, flags='j')
+        source.ImportFromEPSG(epsgcode)
+    else:
+        source.ImportFromWkt(bboxcrs)
 
-    outprojstring = grass.read_command('g.proj', flags='j')
-    
-    n = (in_n + in_s) / 2.0
-    e = (in_e + in_w) / 2.0
+    source.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-    outcoords = grass.read_command('m.proj', coordinates=("%.16g,%.16g") % (e, n),
-                                   proj_in=inprojstring,
-                                   proj_out=outprojstring,
-                                   separator=',', flags='d')
+    outprojstring = grass.read_command('g.proj', flags='w')
 
-    out_e, out_n, z = outcoords.split(',')
-    out_e = float(out_e)
-    out_n = float(out_n)
-    out_w = out_e
-    out_s = out_n
+    target = osr.SpatialReference()
+    target.ImportFromWkt(outprojstring)
+    target.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-    tmpfile = grass.tempfile()
-    fd = open(tmpfile, "w")
-    x = in_w
-    y = in_n
-    fd.write("%.16g,%.16g\n" % (x, y))
-    x = in_e
-    y = in_n
-    fd.write("%.16g,%.16g\n" % (x, y))
-    x = in_e
-    y = in_s
-    fd.write("%.16g,%.16g\n" % (x, y))
-    x = in_w
-    y = in_s
-    fd.write("%.16g,%.16g\n" % (x, y))
+    transform = osr.CoordinateTransformation(source, target)
+
+    lower_left = ogr.CreateGeometryFromWkt(
+        f"POINT ({in_w} {in_s})")
+    lower_left.Transform(transform)
+    upper_right = ogr.CreateGeometryFromWkt(
+        f"POINT ({in_e} {in_n})")
+    upper_right.Transform(transform)
+
+    out_w = lower_left.GetPoint()[0]
+    out_s = lower_left.GetPoint()[1]
+    out_e = upper_right.GetPoint()[0]
+    out_n = upper_right.GetPoint()[1]
 
     stepsize = (in_n - in_s) / 21.0
     counter = 1
     while counter < 21:
         x = in_w
         y = in_s + counter * stepsize
-        fd.write("%.16g,%.16g\n" % (x, y))
-        x = in_e
-        fd.write("%.16g,%.16g\n" % (x, y))
-        
+        border_point = ogr.CreateGeometryFromWkt(
+            f"POINT ({x} {y})")
+        border_point.Transform(transform)
+        out_x = border_point.GetPoint()[0]
+        out_y = border_point.GetPoint()[1]
+
+        if out_w > out_x:
+            out_w = out_x
+        if out_e < out_x:
+            out_e = out_x
+
+        if out_s > out_y:
+            out_s = out_y
+        if out_n < out_y:
+            out_n = out_y
+
         counter = counter + 1
 
     stepsize = (in_e - in_w) / 21.0
@@ -156,33 +163,20 @@ def main():
     while counter < 21:
         x = in_w + counter * stepsize
         y = in_s
-        fd.write("%.16g,%.16g\n" % (x, y))
-        y = in_n
-        fd.write("%.16g,%.16g\n" % (x, y))
-        
+        border_point = ogr.CreateGeometryFromWkt(
+            f"POINT ({x} {y})")
+        border_point.Transform(transform)
+
+        if out_w > out_x:
+            out_w = out_x
+        if out_e < out_x:
+            out_e = out_x
+
+        if out_s > out_y:
+            out_s = out_y
+        if out_n < out_y:
+            out_n = out_y
         counter = counter + 1
-    
-    fd.close()
-
-    outcoords = grass.read_command('m.proj', input=tmpfile,
-                                   proj_in=inprojstring,
-                                   proj_out=outprojstring,
-                                   separator=',', flags='d')
-
-    for line in outcoords.splitlines():
-        e, n, z = line.split(',')
-        e = float(e)
-        n = float(n)
-        if out_e < e:
-            out_e = e
-        if out_w > e:
-            out_w = e
-        if out_n < n:
-            out_n = n
-        if out_s > n:
-            out_s = n
-
-    grass.try_remove(tmpfile)
 
     outflags = ""
     if flags['p']:
@@ -191,16 +185,22 @@ def main():
         outflags = 'g'
 
     if raster:
-        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, align=raster, flags=outflags)
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e,
+                          align=raster, flags=outflags)
     elif strds:
-        strds_info = grass.parse_command('t.info', input=strds, flags='g', delimiter = '=')
-        res = (float(strds_info['nsres_min']) + float(strds_info['ewres_min'])) / 2.0
+        strds_info = grass.parse_command('t.info', input=strds, flags='g',
+                                         delimiter='=')
+        res = ((float(strds_info['nsres_min'])
+               + float(strds_info['ewres_min'])) / 2.0)
         outflags = outflags + 'a'
-        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, res=res, flags=outflags)
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e,
+                          res=res, flags=outflags)
     else:
-        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e, flags=outflags)
+        grass.run_command('g.region', n=out_n, s=out_s, w=out_w, e=out_e,
+                          flags=outflags)
 
     return 0
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()
