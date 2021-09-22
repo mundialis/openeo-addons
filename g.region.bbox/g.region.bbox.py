@@ -18,78 +18,78 @@
 #
 ############################################################################
 
-#%module
-#% description: Sets the region from a bounding box and CRS for that bbox.
-#% keyword: general
-#% keyword: settings
-#% keyword: computational region
-#% keyword: extent
-#%end
-#%flag
-#% key: p
-#% description: Print the current region
-#% guisection: Print
-#%end
-#%flag
-#% key: g
-#% description: Print in shell script style
-#% guisection: Print
-#%end
-#%option
-#% key: n
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: value
-#% description: Value for the northern edge
-#% guisection: Bounds
-#%end
-#%option
-#% key: s
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: value
-#% description: Value for the southern edge
-#% guisection: Bounds
-#%end
-#%option
-#% key: e
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: value
-#% description: Value for the eastern edge
-#% guisection: Bounds
-#%end
-#%option
-#% key: w
-#% type: string
-#% required: yes
-#% multiple: no
-#% key_desc: value
-#% description: Value for the western edge
-#% guisection: Bounds
-#%end
-#%option
-#% key: crs
-#% type: string
-#% required: no
-#% multiple: no
-#% key_desc: value
-#% answer: EPSG:4326
-#% label: CRS of the coordinates (default EPSG:4326)
-#% description: CRS must be EPSG code or proj string
-#% guisection: Bounds
-#%end
-#%option G_OPT_R_INPUT
-#% key: raster
-#% required: no
-#%end
-#%option G_OPT_STRDS_INPUT
-#% key: strds
-#% required: no
-#%end
+# %module
+# % description: Sets the region from a bounding box and CRS for that bbox.
+# % keyword: general
+# % keyword: settings
+# % keyword: computational region
+# % keyword: extent
+# %end
+# %flag
+# % key: p
+# % description: Print the current region
+# % guisection: Print
+# %end
+# %flag
+# % key: g
+# % description: Print in shell script style
+# % guisection: Print
+# %end
+# %option
+# % key: w
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: value
+# % description: Value for the western edge
+# % guisection: Bounds
+# %end
+# %option
+# % key: s
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: value
+# % description: Value for the southern edge
+# % guisection: Bounds
+# %end
+# %option
+# % key: e
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: value
+# % description: Value for the eastern edge
+# % guisection: Bounds
+# %end
+# %option
+# % key: n
+# % type: string
+# % required: yes
+# % multiple: no
+# % key_desc: value
+# % description: Value for the northern edge
+# % guisection: Bounds
+# %end
+# %option
+# % key: crs
+# % type: string
+# % required: no
+# % multiple: no
+# % key_desc: value
+# % answer: EPSG:4326
+# % label: CRS of the coordinates (default EPSG:4326)
+# % description: CRS must be EPSG code or proj string
+# % guisection: Bounds
+# %end
+# %option G_OPT_R_INPUT
+# % key: raster
+# % required: no
+# %end
+# %option G_OPT_STRDS_INPUT
+# % key: strds
+# % required: no
+# %end
 
 import sys
 
@@ -107,18 +107,32 @@ def main():
     strds = options['strds']
 
     source = osr.SpatialReference()
-    if "EPSG" in bboxcrs:
-        epsgcode = bboxcrs[5:len(bboxcrs)]
-        source.ImportFromEPSG(epsgcode)
-    else:
-        source.ImportFromWkt(bboxcrs)
 
+    # there is no ImportFromAnything fn in GDAL OSR, thus
+    # feed crs to projinfo and get WKT
+    if not grass.find_program("projinfo"):
+        grass.fatal(
+            _(
+                "projinfo program not found, install PROJ first: \
+            https://proj.org"
+            )
+        )
+
+    cmd = ["projinfo", "-q", "-o", "WKT2:2019", bboxcrs]
+    p = grass.Popen(cmd, stdout=grass.PIPE)
+    inwkt = p.communicate()[0]
+
+    inwkt = grass.decode(inwkt)
+
+    source.ImportFromWkt(inwkt)
+    # make sure easting is first axis
     source.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
-    outprojstring = grass.read_command('g.proj', flags='w')
+    outwkt = grass.read_command('g.proj', flags='w')
 
     target = osr.SpatialReference()
-    target.ImportFromWkt(outprojstring)
+    target.ImportFromWkt(outwkt)
+    # make sure easting is first axis
     target.SetAxisMappingStrategy(osr.OAMS_TRADITIONAL_GIS_ORDER)
 
     transform = osr.CoordinateTransformation(source, target)
