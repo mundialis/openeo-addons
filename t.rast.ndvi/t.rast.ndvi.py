@@ -47,6 +47,32 @@
 # %end
 
 # %option
+# % key: red
+# % type: string
+# % description: Bandname to be used as red band
+# % required: no
+# % multiple: no
+# % answer: red
+# %end
+
+# %option
+# % key: nir
+# % type: string
+# % description: Bandname to be used as nir band
+# % required: no
+# % multiple: no
+# % answer: nir
+# %end
+
+# %option
+# % key: target
+# % type: string
+# % description: Output bandname
+# % required: no
+# % multiple: no
+# %end
+
+# %option
 # % key: nprocs
 # % type: integer
 # % description: Number of r.mapcalc processes to run in parallel
@@ -70,6 +96,7 @@ import grass.script as grass
 
 ############################################################################
 
+# see https://processes.openeo.org/#ndvi
 
 def main():
 
@@ -78,6 +105,9 @@ def main():
     output = options["output"]
     base = options["basename"]
     method = options["method"]
+    red_band = options["red"]
+    nir_band = options["nir"]
+    target_band = options["target"]
     nprocs = int(options["nprocs"])
     register_null = flags["n"]
     spatial = flags["s"]
@@ -100,29 +130,42 @@ def main():
             # TODO: check if sensor abbreviation changes
             break
 
-    # hard-coded for now, as long as there are no STAC-like common names
-    # in the output of g.bands
+    # find bands
+    if red_band not in input_bands:
+        if red_band != "red":
+            grass.fatal("Band %s not found in %s" % (red_band, _input))
 
-    red_band = None
-    nir_band = None
-    if sensor_abbr is not None:
-        if sensor_abbr == "L5":
-            red_band = "L5_3"
-            nir_band = "L5_4"
-        elif sensor_abbr == "L7":
-            red_band = "L7_3"
-            nir_band = "L7_4"
-        elif sensor_abbr == "L8":
-            red_band = "L8_4"
-            nir_band = "L8_5"
-        elif sensor_abbr == "S2":
-            red_band = "S2_4"
-            nir_band = "S2_8"
+        red_band = None
+        if sensor_abbr is not None:
+            if sensor_abbr == "L5":
+                red_band = "L5_3"
+            elif sensor_abbr == "L7":
+                red_band = "L7_3"
+            elif sensor_abbr == "L8":
+                red_band = "L8_4"
+            elif sensor_abbr == "S2":
+                red_band = "S2_4"
 
-    if red_band is None:
-        grass.warning("Assuming 'red' and 'nir as band names in %s" % _input)
-        red_band = "red"
-        nir_band = "nir"
+        if red_band is None:
+            grass.fatal("No red channel band found in %s" % (_input))
+
+    if nir_band not in input_bands:
+        if nir_band != "nir":
+            grass.fatal("Band %s not found in %s" % (nir_band, _input))
+
+        nir_band = None
+        if sensor_abbr is not None:
+            if sensor_abbr == "L5":
+                nir_band = "L5_4"
+            elif sensor_abbr == "L7":
+                nir_band = "L7_4"
+            elif sensor_abbr == "L8":
+                nir_band = "L8_5"
+            elif sensor_abbr == "S2":
+                nir_band = "S2_8"
+
+        if nir_band is None:
+            grass.fatal("No nir channel band found in %s" % (_input))
 
     new_inputs = []
     if '@' in _input:
@@ -151,6 +194,39 @@ def main():
                       expression=expression, method=method,
                       output=output, basename=base,
                       nprocs=nprocs, flags=new_flags)
+
+    # if target band is given, the new raster maps must be registered in the input strds
+    if target_band:
+        import grass.temporal as tgis
+
+        # Make sure the temporal database exists
+        tgis.init()
+        # We need a database interface
+        dbif = tgis.SQLDatabaseInterfaceConnection()
+        dbif.connect()
+
+        in_sp = tgis.open_old_stds(_input, "strds", dbif)
+        out_sp = tgis.open_old_stds(output, "strds", dbif)
+        maps = out_sp.get_registered_maps_as_objects(dbif=dbif)
+
+        if not maps:
+            dbif.close()
+            grass.warning("Space time raster dataset <%s> is empty" % in_sp.get_id())
+            return
+
+        for map in maps:
+            map.set_band_reference(target_band)
+
+            # Insert map in temporal database
+            map.update(dbif)
+            in_sp.register_map(map, dbif)
+
+        # remove temporary strds
+        dbif.close()
+
+        grass.run_command('t.remove', inputs=output, type="strds",
+                          flags='f')
+
 
 ###############################################################################
 
