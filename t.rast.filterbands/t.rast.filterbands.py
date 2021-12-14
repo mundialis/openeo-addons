@@ -223,7 +223,7 @@ def main():
                     break
             i += 2
 
-    wherestr = ("band_reference in (%s)") % (", ".join(bandssel))
+    wherestr = ("semantic_label in (%s)") % (", ".join(bandssel))
     grass.message("selecting bands %s" % (", ".join(bandssel)))
 
     grass.run_command('t.rast.extract', input=_input, where=wherestr,
