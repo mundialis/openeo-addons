@@ -76,7 +76,7 @@ def main():
     dbif.close()
 
     # t.rast.list with columns name, start date, band reference
-    rlist = grass.read_command("t.rast.list", input=_input, columns="name,start_time,band_reference", flags="u")
+    rlist = grass.read_command("t.rast.list", input=_input, columns="name,start_time,semantic_label", flags="u")
 
     rlistfile = grass.tempfile(create=False)
     fd = open(rlistfile, "w")
@@ -87,14 +87,14 @@ def main():
 
     # modify band names
     for rmap in rlist.splitlines():
-        name, start_time, band_reference = rmap.split('|')
+        name, start_time, semantic_label = rmap.split('|')
         if source:
-            if band_reference in source:
-                idx = source.index(band_reference)
-                band_reference = target[idx]
+            if semantic_label in source:
+                idx = source.index(semantic_label)
+                semantic_label = target[idx]
         else:
-            band_reference = target[0]
-        fd.write("%s|%s|%s\n" % (name, start_time, band_reference))
+            semantic_label = target[0]
+        fd.write("%s|%s|%s\n" % (name, start_time, semantic_label))
     
     fd.close()
 
