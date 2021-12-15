@@ -4,14 +4,14 @@ Name of STRDS can be extended by band reference identifier used for filtering. N
 
 t.rast.list input=test.S2_1
 
-Note that band reference filtering is supported by all temporal modules.
+Note that semantic label filtering is supported by all temporal modules.
 <--
 
-get band references
+get semantic labels
 
-t.rast.list input=input_name columns=band_reference
+t.rast.list input=input_name columns=semantic_label
 
-band references are constructed by a sensor-specific abbreviation and a band identifier (not always a number),
+semantic labels are constructed by a sensor-specific abbreviation and a band identifier (not always a number),
 e.g. S2_1 and S2_8A
 
  - get the first entry of the output of t.rast.list columns=band_reference

@@ -215,7 +215,7 @@ def main():
             return
 
         for map in maps:
-            map.set_band_reference(target_band)
+            map.set_semantic_label(target_band)
 
             # Insert map in temporal database
             map.update(dbif)
