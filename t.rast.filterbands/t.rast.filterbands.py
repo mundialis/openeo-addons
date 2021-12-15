@@ -82,7 +82,7 @@ def main():
 
     # get list of bands available in the input strds
     t_info = grass.parse_command('t.info', input=_input, flags='g')
-    bands_avlbl = t_info["band_names"].split(',')
+    bands_avlbl = t_info["semantic_labels"].split(',')
 
     # get the sensor appreviation split by _
     sensor_abbr = None

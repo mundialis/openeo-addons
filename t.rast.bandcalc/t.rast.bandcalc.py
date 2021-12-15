@@ -99,7 +99,7 @@ def main():
 
     # get list of bands available in the input strds
     t_info = grass.parse_command('t.info', input=_input, flags='g')
-    input_bands = t_info["band_names"].split(',')
+    input_bands = t_info["semantic_labels"].split(',')
 
     nbands = len(input_bands)
 
