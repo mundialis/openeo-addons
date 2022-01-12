@@ -29,7 +29,7 @@
 # % keyword: time
 # %end
 
-# %option G_OPT_STDS_INPUT
+# %option G_OPT_STRDS_INPUT
 # % key: strds
 # % description: Name of an existing space time raster dataset
 # %end
@@ -39,7 +39,7 @@
 # % description: Name of an existing raster map
 # %end
 
-# %option G_OPT_STDS_OUTPUT
+# %option G_OPT_STRDS_OUTPUT
 # % description: Name of the new space time raster dataset
 # %end
 
