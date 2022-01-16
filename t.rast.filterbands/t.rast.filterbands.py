@@ -94,9 +94,6 @@ def main():
 
     common_names = dict()
     if sensor_abbr is not None:
-        if sensor_abbr not in ("L5", "L7", "L8", "S2"):
-            grass.fatal("Unknown sensor abbreviation <%s>" % sensor_abbr)
-
         # hard-coded for now, as long as there are no STAC-like common names
         # in the output of g.bands
 

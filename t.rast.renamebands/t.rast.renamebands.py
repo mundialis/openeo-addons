@@ -71,7 +71,7 @@ def main():
     dbif.connect()
 
     # specs of input strds
-    sp = tgis.open_old_stds(input, "strds", dbif)
+    sp = tgis.open_old_stds(_input, "strds", dbif)
     ttype, stype, title, descr = sp.get_initial_values()
     dbif.close()
 
