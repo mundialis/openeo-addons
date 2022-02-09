@@ -54,6 +54,15 @@
 # % answer: 1
 # %end
 
+# %option
+# % key: value
+# % type: string
+# % label: The value used to replace masked cells
+# % description: Default: NULL
+# % required: no
+# % multiple: no
+# %end
+
 # %flag
 # % key: i
 # % label: Invert the mask
@@ -87,6 +96,7 @@ def main():
     mask = options["mask"]
     output = options["output"]
     base = options["basename"]
+    mask_value = options["value"]
     nprocs = int(options["nprocs"])
     register_null = flags["n"]
     spatial = flags["s"]
@@ -109,19 +119,24 @@ def main():
     if int(t_info["number_of_semantic_labels"]) > 1:
         grass.fatal("mask input must not contain several bands")
 
+    if not mask_value:
+        mask_value = "null()"
+
     if input_labels is None:
         if invert_mask:
             expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "null(), %(instrds)s)" %
+                          "%(mask_value)s, %(instrds)s)" %
                           {"instrds": _input,
                            "maskstrds": mask,
-                           "outstrds": output})
+                           "outstrds": output,
+                           "mask_value": mask_value})
         else:
             expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, null())" %
+                          "%(instrds)s, %(mask_value)s)" %
                           {"instrds": _input,
                            "maskstrds": mask,
-                           "outstrds": output})
+                           "outstrds": output,
+                           "mask_value": mask_value})
 
         grass.run_command('t.rast.algebra',
                           expression=expression,
@@ -163,16 +178,18 @@ def main():
         masked_strds = "%s_masked" % (output)
         if invert_mask:
             expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "null(), %(instrds)s)" %
+                          "%(mask_value)s, %(instrds)s)" %
                           {"instrds": extract_strds,
                            "maskstrds": mask,
-                           "outstrds": masked_strds})
+                           "outstrds": masked_strds,
+                           "mask_value": mask_value})
         else:
             expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, null())" %
+                          "%(instrds)s, %(mask_value)s)" %
                           {"instrds": extract_strds,
                            "maskstrds": mask,
-                           "outstrds": masked_strds})
+                           "outstrds": masked_strds,
+                           "mask_value": mask_value})
 
         grass.run_command('t.rast.algebra',
                           expression=expression,
