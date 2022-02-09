@@ -101,7 +101,7 @@ def main():
     # get list of bands available in the input strds
     t_info = grass.parse_command('t.info', input=_input, flags='g')
     input_labels = None
-    if int(t_info["number_of_semantic_labels"]) > 1:
+    if int(t_info["number_of_semantic_labels"]) > 0:
         input_labels = t_info["semantic_labels"].split(',')
 
     # get list of bands available in the mask strds
@@ -194,6 +194,9 @@ def main():
 
         # remove masked_strds
         grass.run_command('t.remove', inputs=masked_strds, flags='f')
+
+    # Update the spatio-temporal extent and the metadata table entries
+    out_sp.update_from_registered_maps(dbif)
 
     # done
 
