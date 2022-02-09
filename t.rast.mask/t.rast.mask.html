@@ -1,0 +1,40 @@
+<h2>DESCRIPTION</h2>
+
+<em>t.rast.mask</em> applies one strds as a mask to another strds. By default,
+all cells in the input strds are set to NULL where the mask strds is
+NULL or zero. This behaviour can be inverted with the <em>-i</em> flag, such that all cells
+in the input strds set to NULL where the mask strds is not NULL and not zero.
+
+<p>
+Any semantic labels in the input strds are transferred to the output strds.
+
+<p>
+This module expects several parameters. The resulting space time raster 
+dataset must be specified in the <b>output</b> option together with the 
+<b>basename</b> of generated raster maps that are registered in the 
+resulting STRDS. Empty maps resulting from map-calculation are not 
+registered by default. This behavior can be changed with the <b>-n</b> 
+flag. The flag <b>-s</b> can be used to assure that only spatially 
+related maps in the STRDS's are processed. Spatially related means that 
+temporaly related maps overlap in their spatial extent.
+
+
+<h2>SEE ALSO</h2>
+
+<em>
+<a href="t.rast.algebra.html">t.rast.algebra</a>,
+<a href="g.bands.html">g.bands</a>,
+<a href="i.bands.html">i.bands</a>
+</em>
+<p>
+<a href="http://grasswiki.osgeo.org/wiki/Temporal_data_processing">Temporal data processing Wiki</a>
+
+<h2>AUTHOR</h2>
+
+Markus Metz
+
+<!--
+<p>
+<i>Last changed: $Date$</i>
+-->
+
