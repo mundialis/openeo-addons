@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 ############################################################################
 #
-# MODULE:       t.rast.mask
+# MODULE:       t.rast.oeapply
 # AUTHOR(S):    Markus Metz
 #
-# PURPOSE:      Mask a STRDS with another STRDS
+# PURPOSE:      Preserve semantic labels in t.rast.mapcalc
 # COPYRIGHT:    (C) 2022 by mundialis and the GRASS Development Team
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 #############################################################################
 
 # %module
-# % description: Mask a STRDS with another STRDS.
+# % description: Preserve semantic labels in t.rast.mapcalc.
 # % keyword: temporal
 # % keyword: algebra
 # % keyword: raster
