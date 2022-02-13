@@ -31,8 +31,12 @@
 # %option G_OPT_STRDS_INPUT
 # %end
 
-# %option G_OPT_STRDS_INPUT
-# % key: mask
+# %option
+# % key: expression
+# % type: string
+# % description: Spatio-temporal mapcalc expression
+# % required: yes
+# % multiple: no
 # %end
 
 # %option G_OPT_STRDS_OUTPUT
@@ -52,21 +56,6 @@
 # % required: no
 # % multiple: no
 # % answer: 1
-# %end
-
-# %option
-# % key: value
-# % type: string
-# % label: The value used to replace masked cells
-# % description: Default: NULL
-# % required: no
-# % multiple: no
-# %end
-
-# %flag
-# % key: i
-# % label: Invert the mask
-# % description: Default: keep cells that are not NULL and not zero in the mask
 # %end
 
 # %flag
@@ -93,14 +82,12 @@ def main():
 
     # Get the options
     _input = options["input"]
-    mask = options["mask"]
+    expression = options["expression"]
     output = options["output"]
     base = options["basename"]
-    mask_value = options["value"]
     nprocs = int(options["nprocs"])
     register_null = flags["n"]
     spatial = flags["s"]
-    invert_mask = flags["i"]
 
     new_flags = ""
     if register_null:
@@ -114,32 +101,12 @@ def main():
     if int(t_info["number_of_semantic_labels"]) > 0:
         input_labels = t_info["semantic_labels"].split(',')
 
-    # get list of bands available in the mask strds
-    t_info = grass.parse_command('t.info', input=mask, flags='g')
-    if int(t_info["number_of_semantic_labels"]) > 1:
-        grass.fatal("mask input must not contain several bands")
-
-    if not mask_value:
-        mask_value = "null()"
-
     if input_labels is None:
-        if invert_mask:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(mask_value)s, %(instrds)s)" %
-                          {"instrds": _input,
-                           "maskstrds": mask,
-                           "outstrds": output,
-                           "mask_value": mask_value})
-        else:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, %(mask_value)s)" %
-                          {"instrds": _input,
-                           "maskstrds": mask,
-                           "outstrds": output,
-                           "mask_value": mask_value})
-
-        grass.run_command('t.rast.algebra',
+        grass.run_command('t.rast.mapcalc',
+                          input=_input,
                           expression=expression,
+                          method="equal",
+                          output=output,
                           basename=base,
                           nprocs=nprocs, flags=new_flags)
         sys.exit()
@@ -174,33 +141,23 @@ def main():
                           output=extract_strds,
                           where="semantic_label = '%s'" % label)
 
-        # mask
-        masked_strds = "%s_masked" % (output)
-        if invert_mask:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(mask_value)s, %(instrds)s)" %
-                          {"instrds": extract_strds,
-                           "maskstrds": mask,
-                           "outstrds": masked_strds,
-                           "mask_value": mask_value})
-        else:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, %(mask_value)s)" %
-                          {"instrds": extract_strds,
-                           "maskstrds": mask,
-                           "outstrds": masked_strds,
-                           "mask_value": mask_value})
+        # apply
+        apply_strds = "%s_masked" % (output)
+        label_expression = expression.replace(_input, extract_strds)
 
-        grass.run_command('t.rast.algebra',
-                          expression=expression,
+        grass.run_command('t.rast.mapcalc',
+                          input=extract_strds,
+                          expression=label_expression,
+                          method="equal",
+                          output=apply_strds,
                           basename="%s_%d" % (base, counter),
                           nprocs=nprocs, flags=new_flags)
 
         # remove extract_strds
         grass.run_command('t.remove', inputs=extract_strds, flags='f')
 
-        masked_sp = tgis.open_old_stds(masked_strds, "strds", dbif)
-        maps = masked_sp.get_registered_maps_as_objects(dbif=dbif)
+        apply_sp = tgis.open_old_stds(apply_strds, "strds", dbif)
+        maps = apply_sp.get_registered_maps_as_objects(dbif=dbif)
 
         for map in maps:
             map.set_semantic_label(label)
@@ -210,7 +167,7 @@ def main():
             out_sp.register_map(map, dbif)
 
         # remove masked_strds
-        grass.run_command('t.remove', inputs=masked_strds, flags='f')
+        grass.run_command('t.remove', inputs=apply_strds, flags='f')
 
     # Update the spatio-temporal extent and the metadata table entries
     out_sp.update_from_registered_maps(dbif)
