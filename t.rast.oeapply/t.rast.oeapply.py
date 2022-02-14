@@ -74,7 +74,7 @@ import grass.script as grass
 
 ############################################################################
 
-# see https://processes.openeo.org/#ndvi
+# see https://processes.openeo.org/#apply
 
 def main():
     # lazy imports
@@ -142,7 +142,7 @@ def main():
                           where="semantic_label = '%s'" % label)
 
         # apply
-        apply_strds = "%s_masked" % (output)
+        apply_strds = "%s_apply" % (output)
         label_expression = expression.replace(_input, extract_strds)
 
         grass.run_command('t.rast.mapcalc',

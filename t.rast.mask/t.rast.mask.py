@@ -85,7 +85,7 @@ import grass.script as grass
 
 ############################################################################
 
-# see https://processes.openeo.org/#ndvi
+# see https://processes.openeo.org/#mask
 
 def main():
     # lazy imports
