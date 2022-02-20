@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../../
 
-PGM = t.rast.renamebands
+PGM = t.rast.renamelabels
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

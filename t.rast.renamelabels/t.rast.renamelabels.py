@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 ############################################################################
 #
-# MODULE:       t.rast.renamebands
-# AUTHOR(S):    Markus Metz
+# MODULE:       t.rast.renamelabels
+# AUTHOR(S):    Markus Metz, mundialis
 #
-# PURPOSE:      Rename band names in a given STRDS
+# PURPOSE:      Rename semantic labels in a given STRDS
 # COPYRIGHT:    (C) 2019 by mundialis and the GRASS Development Team
 #
 #  This program is free software; you can redistribute it and/or modify
@@ -20,35 +20,35 @@
 #
 #############################################################################
 
-#%module
-#% description: Rename bands in a given STRDS.
-#% keyword: temporal
-#% keyword: algebra
-#% keyword: raster
-#% keyword: time
-#%end
+# %module
+# % description: Rename semantic labels in a given STRDS.
+# % keyword: temporal
+# % keyword: algebra
+# % keyword: raster
+# % keyword: time
+# %end
 
-#%option G_OPT_STRDS_INPUT
-#%end
+# %option G_OPT_STRDS_INPUT
+# %end
 
-#%option G_OPT_STRDS_OUTPUT
-#%end
+# %option G_OPT_STRDS_OUTPUT
+# %end
 
-#%option
-#% key: target
-#% type: string
-#% label: new band names
-#% multiple: yes
-#% required: yes
-#%end
+# %option
+# % key: new
+# % type: string
+# % label: new band names
+# % multiple: yes
+# % required: yes
+# %end
 
-#%option
-#% key: source
-#% type: string
-#% label: old band names
-#% multiple: yes
-#% required: no
-#%end
+# %option
+# % key: old
+# % type: string
+# % label: old band names
+# % multiple: yes
+# % required: no
+# %end
 
 
 import grass.script as grass
@@ -61,8 +61,8 @@ def main():
     # Get the options
     _input = options["input"]
     output = options["output"]
-    source = options["source"]
-    target = options["target"]
+    source = options["old"]
+    target = options["new"]
 
     # Make sure the temporal database exists
     tgis.init()
@@ -76,7 +76,7 @@ def main():
     dbif.close()
 
     # t.rast.list with columns name, start date, band reference
-    rlist = grass.read_command("t.rast.list", input=_input, columns="name,start_time,semantic_label", flags="u")
+    rlist = grass.read_command("t.rast.list", input=_input, columns="name,mapset,start_time,end_time,semantic_label", flags="u")
 
     rlistfile = grass.tempfile(create=False)
     fd = open(rlistfile, "w")
@@ -89,15 +89,33 @@ def main():
 
     # modify band names
     for rmap in rlist.splitlines():
-        name, start_time, semantic_label = rmap.split('|')
+        name, mapset, start_time, end_time, old_label = rmap.split('|')
+        new_label = None
         if source:
-            if semantic_label in source:
-                idx = source.index(semantic_label)
-                semantic_label = target[idx]
+            if old_label in source:
+                idx = source.index(old_label)
+                new_label = target[idx]
+            # keep old label if no new label could be determined
+            # note that python prints a None object as literal "None", skip
+            elif old_label and old_label != "None":
+                new_label = old_label
         else:
-            semantic_label = target[0]
-        fd.write("%s|%s|%s\n" % (name, start_time, semantic_label))
-    
+            new_label = target[0]
+
+        if mapset:
+            name = f"{name}@{mapset}"
+        if new_label:
+            if end_time and end_time != "None":
+                fd.write("%s|%s|%s|%s\n" % (name, start_time, end_time, new_label))
+            else:
+                fd.write("%s|%s||%s\n" % (name, start_time, new_label))
+        else:
+            # also register maps if no new label could be determined
+            if end_time and end_time != "None":
+                fd.write("%s|%s|%s|\n" % (name, start_time, end_time))
+            else:
+                fd.write("%s|%s||\n" % (name, start_time))
+
     fd.close()
 
     # t.create, use specs of input strds
@@ -106,7 +124,9 @@ def main():
                       title=title, description=descr)
 
     # t.register to create new strds
-    grass.run_command('t.register', input=output, file=rlistfile)
+    grass.run_command('t.register', input=output, file=rlistfile, overwrite=True)
+
+    grass.try_remove(rlistfile)
 
 
 if __name__ == "__main__":
