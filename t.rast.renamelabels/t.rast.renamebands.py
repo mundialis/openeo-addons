@@ -81,6 +81,8 @@ def main():
     rlistfile = grass.tempfile(create=False)
     fd = open(rlistfile, "w")
 
+    # test if provided source semantic labels are existing in the input strds
+
     if source:
         source = source.split(',')
     target = target.split(',')
