@@ -221,6 +221,9 @@ def main():
             map.update(dbif)
             in_sp.register_map(map, dbif)
 
+        # Update the spatio-temporal extent and the metadata table entries
+        in_sp.update_from_registered_maps(dbif)
+
         # remove temporary strds
         dbif.close()
 

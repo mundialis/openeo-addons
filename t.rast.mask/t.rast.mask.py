@@ -215,6 +215,8 @@ def main():
     # Update the spatio-temporal extent and the metadata table entries
     out_sp.update_from_registered_maps(dbif)
 
+    dbif.close()
+
     # done
 
 
