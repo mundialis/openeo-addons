@@ -95,9 +95,9 @@ def main():
     common_names = dict()
     if sensor_abbr is not None:
         # hard-coded for now, as long as there are no STAC-like common names
-        # in the output of g.bands
+        # in the output of i.band.library
 
-        # from https://github.com/radiantearth/stac-spec/tree/master/extensions/eo#common-band-names
+        # from https://github.com/stac-extensions/eo/#common-band-names
 
         if sensor_abbr == "L5":
             common_names["blue"] = "L5_1"
