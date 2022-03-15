@@ -16,7 +16,7 @@ e.g. S2_1 and S2_8A
 
  - get the first entry of the output of t.rast.list columns=band_reference
  - get the sensor appreviation split by _
- - get the bands with g.bands pat=<sensor appreviation>
+ - get the bands with i.band.library pat=<sensor appreviation>
  - remove description: split by whitespace
  - find needed bands in formula: if "data[0]" in formula:
  - go through the list of bands and replace (str.replace(old, new) in the formula e.g. data[0] with (input_strds + '.' + bandref[0])
