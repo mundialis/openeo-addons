@@ -124,15 +124,15 @@ def main():
 
     if input_labels is None:
         if invert_mask:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(mask_value)s, %(instrds)s)" %
+            expression = ("%(outstrds)s = if(isnull(%(maskstrds)s), %(instrds)s, "
+                          "if(%(maskstrds)s == 0, %(instrds)s, %(mask_value)s))" %
                           {"instrds": _input,
                            "maskstrds": mask,
                            "outstrds": output,
                            "mask_value": mask_value})
         else:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, %(mask_value)s)" %
+            expression = ("%(outstrds)s = if(isnull(%(maskstrds)s), %(mask_value)s, "
+                          "if(%(maskstrds)s == 0, %(mask_value)s, %(instrds)s))" %
                           {"instrds": _input,
                            "maskstrds": mask,
                            "outstrds": output,
@@ -177,15 +177,15 @@ def main():
         # mask
         masked_strds = "%s_masked" % (output)
         if invert_mask:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(mask_value)s, %(instrds)s)" %
+            expression = ("%(outstrds)s = if(isnull(%(maskstrds)s), %(instrds)s, "
+                          "if(%(maskstrds)s == 0, %(instrds)s, %(mask_value)s))" %
                           {"instrds": extract_strds,
                            "maskstrds": mask,
                            "outstrds": masked_strds,
                            "mask_value": mask_value})
         else:
-            expression = ("%(outstrds)s = if(isntnull(%(maskstrds)s) && %(maskstrds)s != 0, "
-                          "%(instrds)s, %(mask_value)s)" %
+            expression = ("%(outstrds)s = if(isnull(%(maskstrds)s), %(mask_value)s, "
+                          "if(%(maskstrds)s == 0, %(mask_value)s, %(instrds)s))" %
                           {"instrds": extract_strds,
                            "maskstrds": mask,
                            "outstrds": masked_strds,
