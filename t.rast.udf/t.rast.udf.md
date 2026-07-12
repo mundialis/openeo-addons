@@ -1,0 +1,45 @@
+## DESCRIPTION
+
+This module is designed to apply a user defined Python function (UDF) to
+a raster time series (STRDS). This module will accept a single STRDS as
+input and will generate a single STRDS as output.
+
+The user defined function must follow the API definition provided by the
+openEO UDF API initiative.
+
+This module requires the [openEO UDF
+API](https://github.com/Open-EO/openeo-udf) installed in the python
+path. It also requireds python3.7 to run.
+
+## EXAMPLES
+
+Compute the sum of all (x,y) slices in the time series cube along the
+time axis (0):
+
+```sh
+def rct_sum(udf_data):
+    tile_results = []
+
+    for tile in udf_data.raster_collection_tiles:
+        tile_sum = numpy.sum(tile.data, axis=0)
+        rows, cols = tile_sum.shape
+        array3d = numpy.ndarray([1, rows, cols])
+        array3d[0] = tile_sum
+        if tile.start_times is not None and tile.end_times is not None:
+            starts = pandas.DatetimeIndex([tile.start_times[0]])
+            ends = pandas.DatetimeIndex([tile.end_times[-1]])
+        else:
+            starts = None
+            ends = None
+
+        rct = RasterCollectionTile(id=tile.id + "_sum", extent=tile.extent, data=array3d,
+                                   start_times=starts, end_times=ends)
+        tile_results.append(rct)
+    udf_data.set_raster_collection_tiles(tile_results)
+
+rct_sum(data)
+```
+
+## AUTHOR
+
+Sören Gebbert
